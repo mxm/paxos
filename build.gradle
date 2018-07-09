@@ -1,0 +1,11 @@
+apply plugin: 'java'
+apply plugin: 'idea'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile group: 'com.typesafe.akka', name: 'akka-actor_2.12', version: '2.5.13'
+    testCompile group: 'com.typesafe.akka', name: 'akka-testkit_2.12', version: '2.5.13'
+}
