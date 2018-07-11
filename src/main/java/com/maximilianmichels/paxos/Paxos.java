@@ -58,8 +58,8 @@ public class Paxos {
 
     void doUpdate(long value) throws TimeoutException, InterruptedException {
         Objects.requireNonNull(actorSystem, "Actor system not yet started.");
-        Future<Object> ask = Patterns.ask(client, new Messages.Request(value), 5000);
-        Await.ready(ask, Duration.create(" 5 seconds"));
+        Future<Object> ask = Patterns.ask(client, new Messages.Request(value), 15000);
+        Await.ready(ask, Duration.create("15 seconds"));
     }
 
 

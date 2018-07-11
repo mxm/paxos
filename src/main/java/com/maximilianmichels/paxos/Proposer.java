@@ -3,6 +3,7 @@ package com.maximilianmichels.paxos;
 import akka.actor.ActorRef;
 import akka.actor.Cancellable;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,6 +16,7 @@ public class Proposer extends Actor {
 
     private List<Messages.Promise> promises;
     private ActorRef client;
+    private Cancellable timeoutScheduler;
 
     Proposer(int idx, ActorRef[] acceptors) {
         super(idx);
@@ -35,6 +37,8 @@ public class Proposer extends Actor {
                             for (ActorRef acceptor : acceptors) {
                                 acceptor.tell(new Messages.Prepare(proposalNo), self());
                             }
+                            timeoutScheduler = context().system().scheduler().scheduleOnce(
+                                    Duration.ofSeconds(5), self(), req, context().dispatcher(), sender());
                         })
                 .match(Messages.Promise.class,
                         (promise) -> {
@@ -42,6 +46,9 @@ public class Proposer extends Actor {
                             if (promise.proposalNo == proposalNo) {
                                 promises.add(promise);
                                 sendAcceptIfQuorumNumberOfResponses();
+                            } else if (promise.previousProposalNo > proposalNo) {
+                                proposalNo = promise.previousProposalNo;
+                                value = promise.previousProposalNo;
                             }
                         })
                 .build();
@@ -50,12 +57,7 @@ public class Proposer extends Actor {
     private void sendAcceptIfQuorumNumberOfResponses() {
         if (promises.size() >= acceptors.length / 2 + 1) {
             LOG("I'm the leader");
-            for (Messages.Promise promise : promises) {
-                if (promise.previousProposalNo > proposalNo) {
-                    proposalNo = promise.previousProposalNo;
-                    value = promise.previousProposalNo;
-                }
-            }
+            timeoutScheduler.cancel();
             for (ActorRef acceptor : acceptors) {
                 // send to all acceptors, the ones who didn't promise simply ignore it
                 acceptor.tell(new Messages.Accept(proposalNo, value, client), self());
