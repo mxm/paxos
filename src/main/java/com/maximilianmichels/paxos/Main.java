@@ -1,5 +1,6 @@
 package com.maximilianmichels.paxos;
 
+import java.time.Duration;
 import java.util.concurrent.TimeoutException;
 
 public class Main {
@@ -14,7 +15,9 @@ public class Main {
         System.out.println("numAcceptors: " + numAcceptors);
         System.out.println("numLearners: " + numLearners);
 
-        Paxos paxos = new Paxos(numProposers, numAcceptors, numLearners);
+        Duration timeout = Duration.ofSeconds(5);
+
+        Paxos paxos = new Paxos(numProposers, numAcceptors, numLearners, timeout);
         paxos.startActors();
 
         paxos.doUpdate(42);

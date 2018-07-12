@@ -10,6 +10,7 @@ import java.util.List;
 public class Proposer extends Actor {
 
     private final ActorRef[] acceptors;
+    private final Duration timeout;
 
     private long value;
     private long proposalNo;
@@ -18,9 +19,10 @@ public class Proposer extends Actor {
     private ActorRef client;
     private Cancellable timeoutScheduler;
 
-    Proposer(int idx, ActorRef[] acceptors) {
+    Proposer(int idx, ActorRef[] acceptors, Duration timeout) {
         super(idx);
         this.acceptors = acceptors;
+        this.timeout = timeout;
         this.promises = new ArrayList<>();
     }
 
@@ -38,7 +40,7 @@ public class Proposer extends Actor {
                                 acceptor.tell(new Messages.Prepare(proposalNo), self());
                             }
                             timeoutScheduler = context().system().scheduler().scheduleOnce(
-                                    Duration.ofSeconds(5), self(), req, context().dispatcher(), sender());
+                                    timeout, self(), req, context().dispatcher(), sender());
                         })
                 .match(Messages.Promise.class,
                         (promise) -> {

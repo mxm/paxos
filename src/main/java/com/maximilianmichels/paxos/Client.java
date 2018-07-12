@@ -28,6 +28,7 @@ public class Client extends AbstractActor {
                 )
                 .match(Messages.Response.class,
                         (response) -> {
+                            // only reply to client once because multiple learners might inform us
                             if (response.proposalNo > proposalNo) {
                                 client.tell(response, self());
                                 proposalNo = response.proposalNo;

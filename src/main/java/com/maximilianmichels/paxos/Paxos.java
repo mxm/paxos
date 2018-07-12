@@ -6,9 +6,10 @@ import akka.actor.Props;
 import akka.pattern.Patterns;
 import scala.concurrent.Await;
 import scala.concurrent.Future;
-import scala.concurrent.duration.Duration;
 
+import java.time.Duration;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 /**
@@ -19,14 +20,16 @@ public class Paxos {
     private final int numProposers;
     private final int numAcceptors;
     private final int numLearners;
+    private final Duration timeout;
 
     private ActorSystem actorSystem;
     private ActorRef client;
 
-    Paxos(int numProposers, int numAcceptors, int numLearners) {
+    Paxos(int numProposers, int numAcceptors, int numLearners, Duration timeout) {
         this.numProposers = numProposers;
         this.numAcceptors = numAcceptors;
         this.numLearners = numLearners;
+        this.timeout = timeout;
     }
 
     void startActors() {
@@ -50,7 +53,8 @@ public class Paxos {
         final ActorRef[] proposers = new ActorRef[numProposers];
         for (int i = 0; i < numProposers; i++) {
             int idx = i;
-            proposers[i] = actorSystem.actorOf(Props.create(Proposer.class, () -> new Proposer(idx, acceptors)), "proposer" + i);
+            proposers[i] = actorSystem.actorOf(
+                    Props.create(Proposer.class, () -> new Proposer(idx, acceptors, timeout)), "proposer" + i);
         }
 
         client = actorSystem.actorOf(Props.create(Client.class, () -> new Client(proposers)), "client");
@@ -58,8 +62,9 @@ public class Paxos {
 
     void doUpdate(long value) throws TimeoutException, InterruptedException {
         Objects.requireNonNull(actorSystem, "Actor system not yet started.");
-        Future<Object> ask = Patterns.ask(client, new Messages.Request(value), 15000);
-        Await.ready(ask, Duration.create("15 seconds"));
+        final long maxTimeout = timeout.toMillis() * 3;
+        Future<Object> ask = Patterns.ask(client, new Messages.Request(value), maxTimeout);
+        Await.ready(ask, scala.concurrent.duration.Duration.create(maxTimeout, TimeUnit.MILLISECONDS));
     }
 
 
