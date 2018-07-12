@@ -20,7 +20,7 @@ public class Learner extends Actor {
                                 lastProposalNo = accepted.proposalNo;
                                 lastValue = accepted.value;
                                 LOG("Received accepted. No: " + accepted.proposalNo + " value: " + accepted.value);
-                                accepted.client.tell(new Messages.Response(accepted.proposalNo), ActorRef.noSender());
+                                accepted.client.tell(new Messages.Response(accepted.proposalNo, lastValue), ActorRef.noSender());
                             }
                         })
                 .build();

@@ -2,6 +2,8 @@ package com.maximilianmichels.paxos;
 
 import akka.actor.ActorRef;
 
+import java.util.Objects;
+
 class Messages {
 
     static class Request {
@@ -18,6 +20,19 @@ class Messages {
                     "value=" + value +
                     '}';
         }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            Request request = (Request) o;
+            return value == request.value;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(value);
+        }
     }
 
 
@@ -27,6 +42,19 @@ class Messages {
 
         Prepare(long proposalNo) {
             this.proposalNo = proposalNo;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof Prepare)) return false;
+            Prepare prepare = (Prepare) o;
+            return proposalNo == prepare.proposalNo;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(proposalNo);
         }
     }
 
@@ -51,6 +79,21 @@ class Messages {
                     ", previousValue=" + previousValue +
                     '}';
         }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            Promise promise = (Promise) o;
+            return proposalNo == promise.proposalNo &&
+                    previousProposalNo == promise.previousProposalNo &&
+                    previousValue == promise.previousValue;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(proposalNo, previousProposalNo, previousValue);
+        }
     }
 
     static class Accept {
@@ -64,12 +107,27 @@ class Messages {
             this.value = value;
             this.client = client;
         }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            Accept accept = (Accept) o;
+            return proposalNo == accept.proposalNo &&
+                    value == accept.value &&
+                    Objects.equals(client, accept.client);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(proposalNo, value, client);
+        }
     }
 
 
     static class Accepted extends Accept {
 
-        public Accepted(long proposalNo, long value, ActorRef client) {
+        Accepted(long proposalNo, long value, ActorRef client) {
             super(proposalNo, value, client);
         }
     }
@@ -78,9 +136,25 @@ class Messages {
     static class Response {
 
         final long proposalNo;
+        final long learnedValue;
 
-        Response(long proposalNo) {
+        Response(long proposalNo, long learnedValue) {
             this.proposalNo = proposalNo;
+            this.learnedValue = learnedValue;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            Response response = (Response) o;
+            return proposalNo == response.proposalNo &&
+                    learnedValue == response.learnedValue;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(proposalNo, learnedValue);
         }
     }
 }

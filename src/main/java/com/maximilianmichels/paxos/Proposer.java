@@ -36,6 +36,9 @@ public class Proposer extends Actor {
                             proposalNo++;
                             promises.clear();
                             client = sender();
+                            if (timeoutScheduler != null) {
+                                timeoutScheduler.cancel();
+                            }
                             for (ActorRef acceptor : acceptors) {
                                 acceptor.tell(new Messages.Prepare(proposalNo), self());
                             }

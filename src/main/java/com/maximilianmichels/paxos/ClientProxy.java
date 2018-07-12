@@ -3,7 +3,7 @@ package com.maximilianmichels.paxos;
 import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
 
-public class Client extends AbstractActor {
+public class ClientProxy extends AbstractActor {
 
     private final ActorRef[] proposers;
 
@@ -11,7 +11,7 @@ public class Client extends AbstractActor {
 
     private long proposalNo;
 
-    Client(ActorRef[] proposers) {
+    ClientProxy(ActorRef[] proposers) {
         this.proposers = proposers;
     }
 

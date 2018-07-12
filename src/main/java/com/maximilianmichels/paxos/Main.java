@@ -5,7 +5,7 @@ import java.util.concurrent.TimeoutException;
 
 public class Main {
 
-    public static void main(String[] args) throws TimeoutException, InterruptedException {
+    public static void main(String[] args) throws Exception {
 
         int numProposers = 2;
         int numAcceptors = 4;

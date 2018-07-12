@@ -57,14 +57,15 @@ public class Paxos {
                     Props.create(Proposer.class, () -> new Proposer(idx, acceptors, timeout)), "proposer" + i);
         }
 
-        client = actorSystem.actorOf(Props.create(Client.class, () -> new Client(proposers)), "client");
+        client = actorSystem.actorOf(Props.create(ClientProxy.class, () -> new ClientProxy(proposers)), "client");
     }
 
-    void doUpdate(long value) throws TimeoutException, InterruptedException {
+    Messages.Response doUpdate(long value) throws Exception {
         Objects.requireNonNull(actorSystem, "Actor system not yet started.");
         final long maxTimeout = timeout.toMillis() * 3;
         Future<Object> ask = Patterns.ask(client, new Messages.Request(value), maxTimeout);
-        Await.ready(ask, scala.concurrent.duration.Duration.create(maxTimeout, TimeUnit.MILLISECONDS));
+        return (Messages.Response)
+                Await.result(ask, scala.concurrent.duration.Duration.create(maxTimeout, TimeUnit.MILLISECONDS));
     }
 
 
